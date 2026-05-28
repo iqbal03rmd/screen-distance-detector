@@ -3,6 +3,7 @@ import cv2 as cv
 import mediapipe as mp
 import pyttsx3 as tts
 import time
+import threading
 
 lebarWajahAsli = float(input("Masukkan lebar wajah dalam cm (misal: 15): "))
 
@@ -32,6 +33,8 @@ cap = cv.VideoCapture(0)
 focalLength = None
 jarak = None
 lastSpeak = 0
+lebarWajahpx = None
+
 while True:
     # Variabel untuk key input
     key = cv.waitKey(1) & 0xFF
@@ -78,12 +81,18 @@ while True:
                 if jarak < 59:
                     cv.putText(frame, "Too Close", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                     if time.time() - lastSpeak > 3:
-                        speak("you are too close")
+                        threading.Thread(
+                            target=speak,
+                            args=("you are too close",)
+                        ).start()
                         lastSpeak = time.time()
 
     # Ambil FocalLength
-    if key == ord('c'):
-        speak("range has been calibrated")
+    if key == ord('c') and lebarWajahpx is not None:
+        threading.Thread(
+            target=speak,
+            args=("range has been calibrated",)
+        ).start()
         focalLength = (lebarWajahpx * 60) / lebarWajahAsli
         
     cv.imshow('Webcam', frame)
