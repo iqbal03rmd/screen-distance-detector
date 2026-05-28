@@ -4,6 +4,8 @@ import mediapipe as mp
 import pyttsx3 as tts
 import time
 
+lebarWajahAsli = float(input("Masukkan lebar wajah dalam cm (misal: 15): "))
+
 # Inisialisasi MediaPipe Face Mesh
 mp_faceMesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
@@ -66,11 +68,12 @@ while True:
             yKanan = int(pipiKanan.y * frame.shape[0])
 
             # Hitung lebar wajah dengan rumus jarak Euclidean
-            lebarWajah = ((xKanan-xKiri)**2 + (yKanan-yKiri)**2)**0.5
+            lebarWajahpx = ((xKanan-xKiri)**2 + (yKanan-yKiri)**2)**0.5
             if focalLength is not None:
-                jarak = (15 * focalLength) / lebarWajah
+                jarak = (lebarWajahAsli * focalLength) / lebarWajahpx
                 print(f"Jarak: {jarak:.2f} cm")
-             
+            
+            # Peringatan TTS
             if jarak is not None:
                 if jarak < 59:
                     cv.putText(frame, "Too Close", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
@@ -81,7 +84,7 @@ while True:
     # Ambil FocalLength
     if key == ord('c'):
         speak("range has been calibrated")
-        focalLength = (lebarWajah * 60) / 15
+        focalLength = (lebarWajahpx * 60) / lebarWajahAsli
         
     cv.imshow('Webcam', frame)
     if key == ord('q'):
