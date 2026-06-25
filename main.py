@@ -1,17 +1,28 @@
 import cv2 as cv
 import time
 import threading
+import json
+import os
 
 from camera import initFaceMesh, initCamera, drawLandmarks
 from distance import hitungFocalLength, hitungJarak, hitungLebarWajahpx
 from tts import speak
 
-lebarWajahAsli = float(input("Masukkan lebar wajah dalam cm (misal: 15): "))
+CALIBRATION_FILE = "calibration.json"
+
+if os.path.exists(CALIBRATION_FILE):
+    with open(CALIBRATION_FILE, "r") as f:
+        data = json.load(f)
+    focalLength = data["focalLength"]
+    lebarWajahAsli = data["lebarWajahAsli"]
+    print(f"Kalibrasi dimuat: focal={focalLength:.2f}, lebar wajah={lebarWajahAsli} cm")
+else:
+    lebarWajahAsli = float(input("Masukkan lebar wajah dalam cm (misal: 15): "))
+    focalLength = None
 
 faceMesh = initFaceMesh()
 cap = initCamera()
 
-focalLength = None
 jarak = None
 lastSpeak = 0
 
@@ -46,7 +57,9 @@ while True:
     if key == ord('c') and lebarWajahpx is not None:
         threading.Thread(target=speak, args=("range has been calibrated",)).start()
         focalLength = hitungFocalLength(lebarWajahpx, lebarWajahAsli)
-
+        with open("calibration.json", "w") as f:
+            json.dump({"focalLength": focalLength, "lebarWajahAsli": lebarWajahAsli}, f)
+        
     cv.imshow('Webcam', frame)
     if key == ord('q'):
         break
